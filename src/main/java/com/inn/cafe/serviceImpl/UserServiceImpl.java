@@ -87,18 +87,25 @@ public class UserServiceImpl implements UserService {
     public ResponseEntity<String> login(Map<String, String> requestMap) {
         log.info("Inside login");
         try {
+            log.info("Attempting authentication for email: {}", requestMap.get("email"));
+            
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             requestMap.get("email"),
                             requestMap.get("password")
                     )
             );
+            
+            log.info("Authentication successful: {}", auth.isAuthenticated());
 
             if (auth.isAuthenticated()) {
-                if (customUserDetailsService.getUserDetail().getStatus().equalsIgnoreCase("true")) {
+                User userDetail = customUserDetailsService.getUserDetail();
+                log.info("User status: {}", userDetail.getStatus());
+                
+                if (userDetail.getStatus().equalsIgnoreCase("true")) {
                     String token = jwtUtil.generateToken(
-                            customUserDetailsService.getUserDetail().getEmail(),
-                            customUserDetailsService.getUserDetail().getRole()
+                            userDetail.getEmail(),
+                            userDetail.getRole()
                     );
                     return new ResponseEntity<>("{\"token\":\"" + token + "\"}", HttpStatus.OK);
                 } else {
@@ -107,6 +114,7 @@ public class UserServiceImpl implements UserService {
             }
         } catch (Exception ex) {
             log.error("Login failed: {}", ex.getMessage());
+            ex.printStackTrace();
         }
         return new ResponseEntity<>("{\"message\":\"Bad credentials.\"}", HttpStatus.BAD_REQUEST);
     }

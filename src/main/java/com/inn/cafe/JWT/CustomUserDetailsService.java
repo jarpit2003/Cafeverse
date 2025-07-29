@@ -30,18 +30,26 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.info("Inside loadUserByUsername {}", username);
         userDetail = userDao.findByEmailId(username);
         if (!Objects.isNull(userDetail)) {
+            log.info("User found: {} with status: {}", userDetail.getEmail(), userDetail.getStatus());
             return new org.springframework.security.core.userdetails.User(
                     userDetail.getEmail(),
                     userDetail.getPassword(),
                     new ArrayList<>()
             );
         } else {
+            log.error("User not found for email: {}", username);
             throw new UsernameNotFoundException("User not found");
         }
     }
 
     public User getUserDetail() {
-        User user = userDetail;
+        User user = new User();
+        user.setId(userDetail.getId());
+        user.setName(userDetail.getName());
+        user.setEmail(userDetail.getEmail());
+        user.setContactNumber(userDetail.getContactNumber());
+        user.setStatus(userDetail.getStatus());
+        user.setRole(userDetail.getRole());
         user.setPassword(null);
         return user;
     }
